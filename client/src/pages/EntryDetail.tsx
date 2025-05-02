@@ -3,12 +3,14 @@ import { useQuery } from '@tanstack/react-query';
 import { DiaryEntry } from '@shared/schema';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import DeleteEntryDialog from '@/components/DeleteEntryDialog';
 import { formatDate } from '@/lib/format-date';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { HeartIcon, MessageCircle, ArrowLeft, Calendar } from 'lucide-react';
+import { HeartIcon, MessageCircle, ArrowLeft, Calendar, Trash } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'wouter';
+import { useState } from 'react';
 
 export default function EntryDetail() {
   const [match, params] = useRoute('/entries/:id');

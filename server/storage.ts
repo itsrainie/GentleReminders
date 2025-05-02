@@ -15,6 +15,7 @@ export interface IStorage {
   getAllDiaryEntries(limit?: number, offset?: number): Promise<DiaryEntry[]>;
   getDiaryEntryById(id: number): Promise<DiaryEntry | undefined>;
   createDiaryEntry(entry: InsertDiaryEntry): Promise<DiaryEntry>;
+  deleteDiaryEntry(id: number): Promise<boolean>;
   searchDiaryEntries(searchTerm: string): Promise<DiaryEntry[]>;
 }
 
@@ -80,6 +81,14 @@ export class MemStorage implements IStorage {
     
     this.diaryEntries.set(id, entry);
     return entry;
+  }
+
+  async deleteDiaryEntry(id: number): Promise<boolean> {
+    if (!this.diaryEntries.has(id)) {
+      return false;
+    }
+    
+    return this.diaryEntries.delete(id);
   }
 
   async searchDiaryEntries(searchTerm: string): Promise<DiaryEntry[]> {

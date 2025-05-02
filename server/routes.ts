@@ -4,6 +4,9 @@ import { storage } from "./storage";
 import { z } from "zod";
 import { insertDiaryEntrySchema } from "@shared/schema";
 
+// Define the admin password for deleting entries
+const ADMIN_PASSWORD = "74123741456963741789654";
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // API Routes - prefix all routes with /api
   
@@ -66,6 +69,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(entries);
     } catch (error) {
       res.status(500).json({ message: "Failed to search diary entries" });
+    }
+  });
+
+  // Delete a diary entry with password protection
+  app.delete("/api/entries/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid entry ID" });
+      }
+
+      // Check if the entry exists
+      const entry = await storage.getDiaryEntryById(id);
+      if (!entry) {
+        return res.status(404).json({ message: "Entry not found" });
+      }
+
+      // Validate the provided password
+      const { password } = req.body;
+      if (!password || password !== ADMIN_PASSWORD) {
+        return res.status(403).json({ message: "Invalid password" });
+      }
+
+      // Delete the entry
+      const success = await storage.deleteDiaryEntry(id);
+      if (!success) {
+        return res.status(500).json({ message: "Failed to delete entry" });
+      }
+
+      res.status(200).json({ message: "Entry deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete diary entry" });
     }
   });
 
