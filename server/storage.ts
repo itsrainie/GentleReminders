@@ -56,8 +56,8 @@ export class MemStorage implements IStorage {
     const entries = Array.from(this.diaryEntries.values())
       .sort((a, b) => {
         // Sort by most recent first
-        const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
-        const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
+        const dateA = a.createdAt ? (a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt)) : new Date();
+        const dateB = b.createdAt ? (b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt)) : new Date();
         return dateB.getTime() - dateA.getTime();
       });
       
@@ -73,10 +73,19 @@ export class MemStorage implements IStorage {
     const id = this.diaryEntryCurrentId++;
     const createdAt = new Date();
     
-    const entry: DiaryEntry = { 
-      ...insertEntry, 
-      id, 
-      createdAt
+    // Create a new entry with null values for optional fields
+    const entry: DiaryEntry = {
+      id,
+      title: insertEntry.title,
+      content: insertEntry.content,
+      createdAt: createdAt,
+      authorId: insertEntry.authorId || null,
+      authorName: insertEntry.authorName || null,
+      visibility: insertEntry.visibility || null,
+      coverImage: insertEntry.coverImage || null,
+      tags: insertEntry.tags || null,
+      likes: insertEntry.likes || 0,
+      comments: insertEntry.comments || 0
     };
     
     this.diaryEntries.set(id, entry);
@@ -107,8 +116,8 @@ export class MemStorage implements IStorage {
       )
       .sort((a, b) => {
         // Sort by most recent first
-        const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
-        const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
+        const dateA = a.createdAt ? (a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt)) : new Date();
+        const dateB = b.createdAt ? (b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt)) : new Date();
         return dateB.getTime() - dateA.getTime();
       });
   }
