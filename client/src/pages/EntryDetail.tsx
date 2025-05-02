@@ -16,6 +16,7 @@ export default function EntryDetail() {
   const [match, params] = useRoute('/entries/:id');
   const { toast } = useToast();
   const id = params?.id ? parseInt(params.id) : undefined;
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const { data: entry, isLoading, error } = useQuery<DiaryEntry>({
     queryKey: ['/api/entries', id],
@@ -105,10 +106,10 @@ export default function EntryDetail() {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center">
               <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white">
-                {entry.authorName.charAt(0)}
+                {entry.authorName ? entry.authorName.charAt(0) : 'A'}
               </div>
               <div className="ml-3">
-                <span className="font-medium">{entry.authorName}</span>
+                <span className="font-medium">{entry.authorName || 'Anonymous'}</span>
                 <div className="flex items-center text-muted-foreground text-sm">
                   <Calendar className="h-3 w-3 mr-1" />
                   <span>{formatDate(entry.createdAt)}</span>
@@ -159,11 +160,11 @@ export default function EntryDetail() {
             {formatContent(entry.content)}
           </div>
           
-          {entry.tags && (
+          {entry.tags && entry.tags.length > 0 && (
             <div className="mt-8 pt-6 border-t border-border">
               <h3 className="text-sm font-medium mb-2">Tags</h3>
               <div className="flex flex-wrap gap-2">
-                {entry.tags.split(',').map((tag, index) => (
+                {entry.tags.split(',').filter(tag => tag.trim().length > 0).map((tag, index) => (
                   <span 
                     key={index} 
                     className="px-3 py-1 bg-muted text-muted-foreground text-sm rounded-full"
@@ -174,8 +175,33 @@ export default function EntryDetail() {
               </div>
             </div>
           )}
+
+          {/* Admin Actions */}
+          <div className="mt-12 pt-6 border-t border-border">
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 flex items-center gap-1"
+                onClick={() => setIsDeleteDialogOpen(true)}
+              >
+                <Trash className="h-4 w-4" />
+                Delete Entry
+              </Button>
+            </div>
+          </div>
         </div>
       </main>
+      
+      {/* Delete Entry Dialog */}
+      {id && (
+        <DeleteEntryDialog
+          isOpen={isDeleteDialogOpen}
+          onClose={() => setIsDeleteDialogOpen(false)}
+          entryId={id}
+        />
+      )}
+      
       <Footer />
     </>
   );

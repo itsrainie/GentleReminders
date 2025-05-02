@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient, apiRequest } from '@/lib/queryClient';
@@ -66,7 +65,7 @@ export default function DeleteEntryDialog({ isOpen, onClose, entryId }: DeleteEn
       });
       queryClient.invalidateQueries({ queryKey: ['/api/entries'] });
       onClose();
-      navigate('/');
+      setLocation('/');
     },
     onError: (error: Error) => {
       toast({

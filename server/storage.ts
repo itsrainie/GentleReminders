@@ -102,8 +102,8 @@ export class MemStorage implements IStorage {
       .filter(entry => 
         entry.title.toLowerCase().includes(lowerCaseSearchTerm) || 
         entry.content.toLowerCase().includes(lowerCaseSearchTerm) ||
-        entry.tags.toLowerCase().includes(lowerCaseSearchTerm) ||
-        entry.authorName.toLowerCase().includes(lowerCaseSearchTerm)
+        (entry.tags && entry.tags.toLowerCase().includes(lowerCaseSearchTerm)) ||
+        (entry.authorName && entry.authorName.toLowerCase().includes(lowerCaseSearchTerm))
       )
       .sort((a, b) => {
         // Sort by most recent first
