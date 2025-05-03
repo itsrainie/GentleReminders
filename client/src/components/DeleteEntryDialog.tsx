@@ -60,8 +60,8 @@ export default function DeleteEntryDialog({ isOpen, onClose, entryId }: DeleteEn
     },
     onSuccess: () => {
       toast({
-        title: "Entry deleted",
-        description: "The diary entry has been successfully deleted.",
+        title: "Reminder deleted",
+        description: "The reminder has been successfully deleted.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/entries'] });
       onClose();
@@ -69,7 +69,7 @@ export default function DeleteEntryDialog({ isOpen, onClose, entryId }: DeleteEn
     },
     onError: (error: Error) => {
       toast({
-        title: "Error deleting entry",
+        title: "Error deleting reminder",
         description: error.message || "Incorrect password or server error.",
         variant: "destructive"
       });
@@ -86,10 +86,10 @@ export default function DeleteEntryDialog({ isOpen, onClose, entryId }: DeleteEn
         <DialogHeader>
           <DialogTitle className="text-xl flex items-center">
             <Trash className="h-5 w-5 mr-2 text-destructive" />
-            Delete Entry
+            Delete Reminder
           </DialogTitle>
           <DialogDescription>
-            This action cannot be undone. The entry will be permanently deleted.
+            This action cannot be undone. The reminder will be permanently deleted.
           </DialogDescription>
         </DialogHeader>
         
@@ -126,7 +126,7 @@ export default function DeleteEntryDialog({ isOpen, onClose, entryId }: DeleteEn
                 variant="destructive"
                 disabled={deleteEntry.isPending}
               >
-                {deleteEntry.isPending ? "Deleting..." : "Delete Entry"}
+                {deleteEntry.isPending ? "Deleting..." : "Delete Reminder"}
               </Button>
             </DialogFooter>
           </form>

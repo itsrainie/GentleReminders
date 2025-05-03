@@ -152,7 +152,7 @@ export default function NewEntryModal({ isOpen, onClose, onSuccess }: NewEntryMo
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl">Create New Entry</DialogTitle>
+          <DialogTitle className="text-xl">Create New Reminder</DialogTitle>
         </DialogHeader>
         
         <Form {...form}>
