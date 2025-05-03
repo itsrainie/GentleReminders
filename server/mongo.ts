@@ -4,19 +4,34 @@ import dotenv from 'dotenv';
 // Load environment variables
 dotenv.config();
 
+// MongoDB connection string
+const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/gentlereminders';
+
+// Set strictQuery option
+mongoose.set('strictQuery', false);
+
+// Initialize connection variable
+let connection: mongoose.Connection | null = null;
+
 // MongoDB connection
 const connectToMongoDB = async () => {
-  // Use a MongoDB Atlas free tier URL or default to local MongoDB
-  const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/gentlereminders';
-  
-  try {
-    await mongoose.connect(uri);
-    console.log('Connected to MongoDB successfully');
-    return mongoose.connection;
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
-    throw error;
+  if (!connection) {
+    try {
+      // Connect only if not already connected
+      await mongoose.connect(uri);
+      connection = mongoose.connection;
+      console.log('Connected to MongoDB successfully');
+    } catch (error) {
+      console.error('MongoDB connection error:', error);
+      throw error;
+    }
   }
+  return connection;
 };
+
+// Create a connection immediately so schemas can use it
+mongoose.connect(uri)
+  .then(() => console.log('Initial MongoDB connection successful'))
+  .catch(err => console.error('Initial MongoDB connection failed:', err));
 
 export default connectToMongoDB;

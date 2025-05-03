@@ -9,7 +9,17 @@ const userSchema = new mongoose.Schema({
   timestamps: true 
 });
 
-export const User = mongoose.models.User || mongoose.model('User', userSchema);
+// Define the model with a try/catch to handle potential errors
+let User: mongoose.Model<any>;
+try {
+  // Try to get existing model
+  User = mongoose.model('User');
+} catch (error) {
+  // Model doesn't exist, create new one
+  User = mongoose.model('User', userSchema);
+}
+
+export { User };
 
 // User Types
 export const insertUserSchema = z.object({
@@ -41,7 +51,17 @@ const diaryEntrySchema = new mongoose.Schema({
   timestamps: true 
 });
 
-export const DiaryEntry = mongoose.models.DiaryEntry || mongoose.model('DiaryEntry', diaryEntrySchema);
+// Define the model with a try/catch to handle potential errors
+let DiaryEntry: mongoose.Model<any>;
+try {
+  // Try to get existing model
+  DiaryEntry = mongoose.model('DiaryEntry');
+} catch (error) {
+  // Model doesn't exist, create new one
+  DiaryEntry = mongoose.model('DiaryEntry', diaryEntrySchema);
+}
+
+export { DiaryEntry };
 
 // Diary Entry Types
 export const insertDiaryEntrySchema = z.object({
@@ -81,7 +101,17 @@ const entryCommentSchema = new mongoose.Schema({
   timestamps: true 
 });
 
-export const EntryComment = mongoose.models.EntryComment || mongoose.model('EntryComment', entryCommentSchema);
+// Define the model with a try/catch to handle potential errors
+let EntryComment: mongoose.Model<any>;
+try {
+  // Try to get existing model
+  EntryComment = mongoose.model('EntryComment');
+} catch (error) {
+  // Model doesn't exist, create new one
+  EntryComment = mongoose.model('EntryComment', entryCommentSchema);
+}
+
+export { EntryComment };
 
 // Comment Types
 export const insertCommentSchema = z.object({

@@ -1,6 +1,6 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { mongoStorage as storage } from "./mongo-storage";
 import { z } from "zod";
 import { insertDiaryEntrySchema, insertCommentSchema } from "@shared/schema";
 
