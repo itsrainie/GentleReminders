@@ -1,7 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { storage } from "./storage";
+import connectToMongoDB from "./mongo";
+import { mongoStorage as storage } from "./mongo-storage";
 
 const app = express();
 app.use(express.json());
@@ -39,6 +40,10 @@ app.use((req, res, next) => {
 
 (async () => {
   try {
+    // Connect to MongoDB
+    await connectToMongoDB();
+    log("Connected to MongoDB successfully");
+    
     // Initialize the database with sample data if needed
     await storage.initializeData();
     log("Database initialized successfully");

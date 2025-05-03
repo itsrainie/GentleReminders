@@ -10,22 +10,22 @@ import { eq, desc, like, or, sql } from "drizzle-orm";
 // you might need
 
 export interface IStorage {
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  getUser(id: number | string): Promise<any>;
+  getUserByUsername(username: string): Promise<any>;
+  createUser(user: InsertUser): Promise<any>;
   
   // Diary entries methods
-  getAllDiaryEntries(limit?: number, offset?: number): Promise<DiaryEntry[]>;
-  getDiaryEntryById(id: number): Promise<DiaryEntry | undefined>;
-  createDiaryEntry(entry: InsertDiaryEntry): Promise<DiaryEntry>;
-  deleteDiaryEntry(id: number): Promise<boolean>;
-  searchDiaryEntries(searchTerm: string): Promise<DiaryEntry[]>;
+  getAllDiaryEntries(limit?: number, offset?: number): Promise<any[]>;
+  getDiaryEntryById(id: number | string): Promise<any>;
+  createDiaryEntry(entry: InsertDiaryEntry): Promise<any>;
+  deleteDiaryEntry(id: number | string): Promise<boolean>;
+  searchDiaryEntries(searchTerm: string): Promise<any[]>;
   
   // Comments methods
-  getCommentsByEntryId(entryId: number): Promise<EntryComment[]>;
-  createComment(comment: InsertEntryComment): Promise<EntryComment>;
-  deleteComment(id: number): Promise<boolean>;
-  updateCommentCount(entryId: number): Promise<void>;
+  getCommentsByEntryId(entryId: number | string): Promise<any[]>;
+  createComment(comment: any): Promise<any>;
+  deleteComment(id: number | string): Promise<boolean>;
+  updateCommentCount(entryId: number | string): Promise<void>;
   
   // Database initialization
   initializeData(): Promise<void>;
