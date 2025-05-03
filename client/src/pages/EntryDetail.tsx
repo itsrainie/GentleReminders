@@ -190,33 +190,20 @@ export default function EntryDetail() {
             </div>
           )}
           
-          {/* Format toggle and formatting info */}
-          <div className="flex items-center justify-between mb-4 gap-2">
-            <div className="flex items-center text-xs text-muted-foreground">
-              <span className="flex items-center mr-4">
-                <strong className="mr-1">Bold:</strong> **text**
-              </span>
-              <span className="flex items-center mr-4">
-                <em className="mr-1">Italic:</em> *text*
-              </span>
-              <span className="flex items-center">
-                <u className="mr-1">Underline:</u> _text_
-              </span>
-            </div>
+          {/* Format toggle */}
+          <div className="flex items-center justify-end mb-4 gap-2">
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-indigo-500" />
-                <Switch
-                  checked={isFormattedView}
-                  onCheckedChange={setIsFormattedView}
-                  id="format-toggle"
-                />
-                <Code className="h-4 w-4 text-indigo-500" />
-              </div>
-              <span className="text-sm text-muted-foreground">
-                {isFormattedView ? "Code View" : "Normal View"}
-              </span>
+              <FileText className="h-4 w-4 text-indigo-500" />
+              <Switch
+                checked={isFormattedView}
+                onCheckedChange={setIsFormattedView}
+                id="format-toggle"
+              />
+              <Code className="h-4 w-4 text-indigo-500" />
             </div>
+            <span className="text-sm text-muted-foreground">
+              {isFormattedView ? "Code View" : "Normal View"}
+            </span>
           </div>
           
           {isFormattedView ? (

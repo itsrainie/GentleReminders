@@ -209,6 +209,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Like a diary entry
+  app.post("/api/entries/:id/like", async (req: Request, res: Response) => {
+    try {
+      // For MongoDB, use string ID directly
+      const id = req.params.id;
+      
+      console.log(`API: Liking entry with ID: ${id}`);
+      
+      // Find the exact entry match first
+      const entries = await storage.getAllDiaryEntries(100, 0);
+      const exactMatch = entries.find(e => e.id === id);
+      
+      let entry;
+      if (exactMatch) {
+        entry = exactMatch;
+        console.log(`API: Found exact entry match for liking: ${entry.id}`);
+      } else {
+        // Fall back to partial match
+        entry = await storage.getDiaryEntryById(id);
+      }
+      
+      if (!entry) {
+        return res.status(404).json({ message: "Entry not found" });
+      }
+      
+      // Increment the likes count
+      const updatedEntry = await storage.incrementLikes(entry.id);
+      if (!updatedEntry) {
+        return res.status(500).json({ message: "Failed to like entry" });
+      }
+      
+      res.status(200).json(updatedEntry);
+    } catch (error) {
+      console.error("Error liking entry:", error);
+      res.status(500).json({ message: "Failed to like entry" });
+    }
+  });
+
   // Delete a comment (with password protection)
   app.delete("/api/comments/:id", async (req: Request, res: Response) => {
     try {

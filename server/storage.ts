@@ -14,6 +14,7 @@ export interface IStorage {
   createDiaryEntry(entry: any): Promise<any>;
   deleteDiaryEntry(id: number | string): Promise<boolean>;
   searchDiaryEntries(searchTerm: string): Promise<any[]>;
+  incrementLikes(entryId: number | string): Promise<any | undefined>;
   
   // Comments methods
   getCommentsByEntryId(entryId: number | string): Promise<any[]>;

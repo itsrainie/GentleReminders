@@ -331,6 +331,54 @@ export class MongoDBStorage implements IStorage {
       console.error("Error updating comment count:", error);
     }
   }
+  
+  // Increment the likes count for an entry
+  async incrementLikes(entryId: string | number): Promise<any | undefined> {
+    try {
+      console.log(`Incrementing likes for entry: ${entryId}`);
+      
+      const entryIdStr = String(entryId);
+      
+      // Find the actual entry first (in case entryId is partial)
+      let entry;
+      
+      // Check if valid MongoDB ObjectId
+      const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(entryIdStr);
+      
+      if (isValidObjectId) {
+        // If valid, find directly
+        entry = await DiaryEntry.findById(entryIdStr);
+      } else {
+        // Try to find entry by partial ID
+        entry = await this.getDiaryEntryById(entryIdStr);
+      }
+      
+      if (!entry) {
+        console.error(`Cannot increment likes: entry with ID ${entryIdStr} not found`);
+        return undefined;
+      }
+      
+      // Get the full entry ID
+      const fullEntryId = entry.id || entry._id.toString();
+      
+      // Update the entry and return the updated document
+      const updatedEntry = await DiaryEntry.findByIdAndUpdate(
+        fullEntryId,
+        { $inc: { likes: 1 } },
+        { new: true } // Return the updated document
+      );
+      
+      if (!updatedEntry) {
+        console.error(`Entry with ID ${fullEntryId} not found for like increment`);
+        return undefined;
+      }
+      
+      return this.formatMongoDocument(updatedEntry);
+    } catch (error) {
+      console.error("Error incrementing likes:", error);
+      return undefined;
+    }
+  }
 
   // Initialize data method
   async initializeData(): Promise<void> {
