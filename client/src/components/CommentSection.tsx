@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/form';
 
 interface CommentSectionProps {
-  entryId: number;
+  entryId: string | number;
 }
 
 // Comment form schema

@@ -1,5 +1,5 @@
 import { useRoute } from 'wouter';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DiaryEntry } from '@shared/schema';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -13,14 +13,42 @@ import { useToast } from '@/hooks/use-toast';
 import { Link } from 'wouter';
 import { useState, useRef } from 'react';
 import { Switch } from '@/components/ui/switch';
+import { apiRequest } from '@/lib/queryClient';
 
 export default function EntryDetail() {
   const [match, params] = useRoute('/entries/:id');
   const { toast } = useToast();
-  const id = params?.id ? parseInt(params.id) : undefined;
+  const id = params?.id;
+  const queryClient = useQueryClient();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isFormattedView, setIsFormattedView] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
   const commentsRef = useRef<HTMLDivElement>(null);
+
+  // Like mutation
+  const likeMutation = useMutation({
+    mutationFn: async () => {
+      if (!id) throw new Error('Invalid reminder ID');
+      const response = await apiRequest('POST', `/api/entries/${id}/like`);
+      return response.json();
+    },
+    onSuccess: (updatedEntry) => {
+      toast({
+        title: "Thanks for liking!",
+        description: "Your appreciation has been recorded.",
+      });
+      setIsLiked(true);
+      queryClient.invalidateQueries({ queryKey: ['/api/entries', id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/entries'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error liking reminder",
+        description: error instanceof Error ? error.message : "An error occurred",
+        variant: "destructive"
+      });
+    }
+  });
 
   const { data: entry, isLoading, error } = useQuery<DiaryEntry>({
     queryKey: ['/api/entries', id],
