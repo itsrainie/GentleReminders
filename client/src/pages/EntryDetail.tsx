@@ -8,16 +8,18 @@ import CommentSection from '@/components/CommentSection';
 import { formatDate } from '@/lib/format-date';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { HeartIcon, MessageCircle, ArrowLeft, Calendar, Trash } from 'lucide-react';
+import { HeartIcon, MessageCircle, ArrowLeft, Calendar, Trash, Code, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'wouter';
 import { useState, useRef } from 'react';
+import { Switch } from '@/components/ui/switch';
 
 export default function EntryDetail() {
   const [match, params] = useRoute('/entries/:id');
   const { toast } = useToast();
   const id = params?.id ? parseInt(params.id) : undefined;
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isFormattedView, setIsFormattedView] = useState(false);
   const commentsRef = useRef<HTMLDivElement>(null);
 
   const { data: entry, isLoading, error } = useQuery<DiaryEntry>({
@@ -87,7 +89,7 @@ export default function EntryDetail() {
   // Function to convert newlines to line breaks for displaying content
   const formatContent = (content: string) => {
     return content.split('\n').map((line, i) => (
-      <p key={i} className="mb-4">{line}</p>
+      <p key={i} className="mb-4 reminder-content">{line}</p>
     ));
   };
 
