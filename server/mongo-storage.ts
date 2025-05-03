@@ -8,9 +8,11 @@ import mongoose from "mongoose";
 
 export class MongoDBStorage implements IStorage {
   // User methods
-  async getUser(id: number): Promise<any | undefined> {
+  async getUser(id: string | number): Promise<any | undefined> {
     try {
-      const user = await User.findById(id);
+      // Convert to string for MongoDB ObjectId
+      const userId = String(id);
+      const user = await User.findById(userId);
       return user ? this.formatMongoDocument(user) : undefined;
     } catch (error) {
       console.error("Error getting user:", error);
@@ -54,9 +56,11 @@ export class MongoDBStorage implements IStorage {
     }
   }
 
-  async getDiaryEntryById(id: number): Promise<any | undefined> {
+  async getDiaryEntryById(id: string | number): Promise<any | undefined> {
     try {
-      const entry = await DiaryEntry.findById(id);
+      // Convert to string for MongoDB ObjectId
+      const entryId = String(id);
+      const entry = await DiaryEntry.findById(entryId);
       return entry ? this.formatMongoDocument(entry) : undefined;
     } catch (error) {
       console.error("Error getting diary entry by ID:", error);
@@ -66,7 +70,13 @@ export class MongoDBStorage implements IStorage {
 
   async createDiaryEntry(entry: InsertDiaryEntry): Promise<any> {
     try {
-      const newEntry = new DiaryEntry(entry);
+      // Handle authorId conversion if it exists
+      const entryData = {
+        ...entry,
+        authorId: entry.authorId ? String(entry.authorId) : undefined
+      };
+      
+      const newEntry = new DiaryEntry(entryData);
       await newEntry.save();
       return this.formatMongoDocument(newEntry);
     } catch (error) {
@@ -75,12 +85,14 @@ export class MongoDBStorage implements IStorage {
     }
   }
 
-  async deleteDiaryEntry(id: number): Promise<boolean> {
+  async deleteDiaryEntry(id: string | number): Promise<boolean> {
     try {
-      const result = await DiaryEntry.findByIdAndDelete(id);
+      // Convert to string for MongoDB ObjectId
+      const entryId = String(id);
+      const result = await DiaryEntry.findByIdAndDelete(entryId);
       if (result) {
         // Delete all comments associated with this entry
-        await EntryComment.deleteMany({ entryId: id });
+        await EntryComment.deleteMany({ entryId: entryId });
         return true;
       }
       return false;
@@ -113,9 +125,11 @@ export class MongoDBStorage implements IStorage {
   }
 
   // Comment methods
-  async getCommentsByEntryId(entryId: number): Promise<any[]> {
+  async getCommentsByEntryId(entryId: string | number): Promise<any[]> {
     try {
-      const comments = await EntryComment.find({ entryId })
+      // Convert to string for MongoDB
+      const entryIdStr = String(entryId);
+      const comments = await EntryComment.find({ entryId: entryIdStr })
         .sort({ createdAt: -1 });
       
       return comments.map(comment => this.formatMongoDocument(comment));
@@ -146,7 +160,7 @@ export class MongoDBStorage implements IStorage {
     }
   }
 
-  async deleteComment(id: number): Promise<boolean> {
+  async deleteComment(id: string | number): Promise<boolean> {
     try {
       // Get the comment to find its entryId before deletion
       const comment = await EntryComment.findById(id);
@@ -158,8 +172,8 @@ export class MongoDBStorage implements IStorage {
       const result = await EntryComment.findByIdAndDelete(id);
       
       if (result) {
-        // Update comment count
-        await this.updateCommentCount(Number(entryId));
+        // Update comment count - entryId is already a string
+        await this.updateCommentCount(entryId);
         return true;
       }
       return false;
