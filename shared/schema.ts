@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, foreignKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -37,3 +37,20 @@ export const insertDiaryEntrySchema = createInsertSchema(diaryEntries).omit({
 
 export type DiaryEntry = typeof diaryEntries.$inferSelect;
 export type InsertDiaryEntry = z.infer<typeof insertDiaryEntrySchema>;
+
+// Comments schema
+export const entryComments = pgTable("entry_comments", {
+  id: serial("id").primaryKey(),
+  entryId: integer("entry_id").notNull().references(() => diaryEntries.id, { onDelete: 'cascade' }),
+  authorName: text("author_name").default("Anonymous"),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCommentSchema = createInsertSchema(entryComments).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type EntryComment = typeof entryComments.$inferSelect;
+export type InsertEntryComment = z.infer<typeof insertCommentSchema>;

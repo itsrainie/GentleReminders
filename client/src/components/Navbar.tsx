@@ -31,7 +31,7 @@ export default function Navbar({ onSearch, onNewEntry }: NavbarProps) {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-surface border-b border-border shadow-sm">
+    <header className="sticky top-0 z-50 bg-surface/90 backdrop-blur-sm border-b border-border shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
@@ -59,6 +59,9 @@ export default function Navbar({ onSearch, onNewEntry }: NavbarProps) {
           <nav className="hidden md:flex items-center space-x-4">
             <Link href="/" className="text-foreground hover:text-primary px-3 py-2 rounded-md text-sm font-medium">
               Home
+            </Link>
+            <Link href="/about" className="text-foreground hover:text-primary px-3 py-2 rounded-md text-sm font-medium">
+              About Us
             </Link>
             <Button 
               onClick={onNewEntry}
@@ -88,7 +91,7 @@ export default function Navbar({ onSearch, onNewEntry }: NavbarProps) {
       {/* Mobile menu */}
       {mobileMenuOpen && (
         <div className="md:hidden">
-          <div className="px-4 pt-2 pb-4 space-y-1 bg-surface border-b border-border animate-in fade-in">
+          <div className="px-4 pt-2 pb-4 space-y-1 bg-surface/90 backdrop-blur-sm border-b border-border animate-in fade-in">
             <form onSubmit={handleSearchSubmit} className="relative mb-3">
               <Input
                 type="text"
@@ -104,6 +107,11 @@ export default function Navbar({ onSearch, onNewEntry }: NavbarProps) {
             <Link href="/">
               <div className="block px-3 py-2 rounded-md text-base font-medium text-foreground hover:bg-muted">
                 Home
+              </div>
+            </Link>
+            <Link href="/about">
+              <div className="block px-3 py-2 rounded-md text-base font-medium text-foreground hover:bg-muted">
+                About Us
               </div>
             </Link>
             <Button 

@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { DiaryEntry } from '@shared/schema';
+import { DiaryEntry, EntryComment } from '@shared/schema';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 
 export function useDiaryEntries(limit?: number, offset?: number) {
@@ -43,6 +43,60 @@ export function useCreateDiaryEntry() {
       return res.json();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/entries'] });
+    }
+  });
+}
+
+// Comment-related hooks
+export function useEntryComments(entryId: number | undefined) {
+  return useQuery<EntryComment[]>({
+    queryKey: ['/api/entries', entryId, 'comments'],
+    queryFn: async () => {
+      if (!entryId) throw new Error('Entry ID is required');
+      return await fetch(`/api/entries/${entryId}/comments`).then(res => res.json());
+    },
+    enabled: !!entryId
+  });
+}
+
+export function useCreateComment() {
+  return useMutation({
+    mutationFn: async ({ 
+      entryId, 
+      comment 
+    }: { 
+      entryId: number, 
+      comment: Omit<EntryComment, 'id' | 'entryId' | 'createdAt'> 
+    }) => {
+      const res = await apiRequest('POST', `/api/entries/${entryId}/comments`, comment);
+      return res.json();
+    },
+    onSuccess: (_, { entryId }) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/entries', entryId, 'comments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/entries', entryId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/entries'] });
+    }
+  });
+}
+
+export function useDeleteComment() {
+  return useMutation({
+    mutationFn: async ({ 
+      commentId, 
+      password,
+      entryId
+    }: { 
+      commentId: number, 
+      password: string,
+      entryId: number
+    }) => {
+      const res = await apiRequest('DELETE', `/api/comments/${commentId}`, { password });
+      return res.json();
+    },
+    onSuccess: (_, { entryId }) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/entries', entryId, 'comments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/entries', entryId] });
       queryClient.invalidateQueries({ queryKey: ['/api/entries'] });
     }
   });

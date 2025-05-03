@@ -1,6 +1,7 @@
 import { 
   users, type User, type InsertUser,
-  diaryEntries, type DiaryEntry, type InsertDiaryEntry
+  diaryEntries, type DiaryEntry, type InsertDiaryEntry,
+  entryComments, type EntryComment, type InsertEntryComment
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, like, or, sql } from "drizzle-orm";
@@ -19,6 +20,12 @@ export interface IStorage {
   createDiaryEntry(entry: InsertDiaryEntry): Promise<DiaryEntry>;
   deleteDiaryEntry(id: number): Promise<boolean>;
   searchDiaryEntries(searchTerm: string): Promise<DiaryEntry[]>;
+  
+  // Comments methods
+  getCommentsByEntryId(entryId: number): Promise<EntryComment[]>;
+  createComment(comment: InsertEntryComment): Promise<EntryComment>;
+  deleteComment(id: number): Promise<boolean>;
+  updateCommentCount(entryId: number): Promise<void>;
   
   // Database initialization
   initializeData(): Promise<void>;
@@ -84,6 +91,63 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(diaryEntries.createdAt));
   }
   
+  // Comments methods implementation
+  async getCommentsByEntryId(entryId: number): Promise<EntryComment[]> {
+    return await db.select()
+      .from(entryComments)
+      .where(eq(entryComments.entryId, entryId))
+      .orderBy(desc(entryComments.createdAt));
+  }
+
+  async createComment(comment: InsertEntryComment): Promise<EntryComment> {
+    const results = await db.insert(entryComments).values(comment).returning();
+    
+    // Update comment count for the entry
+    await this.updateCommentCount(comment.entryId);
+    
+    return results[0];
+  }
+
+  async deleteComment(id: number): Promise<boolean> {
+    // Get the comment to get its entryId before deletion
+    const commentToDelete = await db.select()
+      .from(entryComments)
+      .where(eq(entryComments.id, id));
+    
+    if (commentToDelete.length === 0) {
+      return false;
+    }
+    
+    const entryId = commentToDelete[0].entryId;
+    
+    // Delete the comment
+    const results = await db.delete(entryComments)
+      .where(eq(entryComments.id, id))
+      .returning();
+    
+    if (results.length > 0) {
+      // Update comment count for the entry
+      await this.updateCommentCount(entryId);
+      return true;
+    }
+    
+    return false;
+  }
+
+  async updateCommentCount(entryId: number): Promise<void> {
+    // Count comments for the entry
+    const countResult = await db.select({ count: sql<number>`count(*)` })
+      .from(entryComments)
+      .where(eq(entryComments.entryId, entryId));
+    
+    const commentCount = countResult[0]?.count || 0;
+    
+    // Update the entry with the new comment count
+    await db.update(diaryEntries)
+      .set({ comments: commentCount })
+      .where(eq(diaryEntries.id, entryId));
+  }
+
   async initializeData(): Promise<void> {
     // Check if there are existing entries
     const existingEntries = await db.select().from(diaryEntries).limit(1);
@@ -101,65 +165,28 @@ export class DatabaseStorage implements IStorage {
           tags: "reflection,journey,personal",
           likes: 24,
           comments: 5
-        },
-        {
-          title: "Morning Rituals",
-          content: "I've been trying to establish a consistent morning routine. Today I woke up at 6am, meditated for 10 minutes, wrote in my journal, and had a nutritious breakfast before starting work...",
-          coverImage: "https://images.unsplash.com/photo-1531346878377-a5be20888e57?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80",
-          authorId: 2,
-          authorName: "Sarah Kim",
-          visibility: "public",
-          tags: "morning,routine,wellness",
-          likes: 42,
-          comments: 12
-        },
-        {
-          title: "Taking the Road Less Traveled",
-          content: "Today I made a decision that scared me. I turned down a job offer that looked good on paper but didn't align with my values. It was terrifying but also liberating...",
-          coverImage: "https://images.unsplash.com/photo-1506784365847-bbad939e9335?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80",
-          authorId: 3,
-          authorName: "Michael Chen",
-          visibility: "public",
-          tags: "decisions,career,values",
-          likes: 78,
-          comments: 23
-        },
-        {
-          title: "Finding Joy in Simple Things",
-          content: "I've been challenging myself to find joy in everyday moments. Today, it was the perfect cup of coffee, a text from an old friend, and the sound of rain against my window...",
-          coverImage: "https://images.unsplash.com/photo-1455390582262-044cdead277a?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80",
-          authorId: 4,
-          authorName: "Amanda Lopez",
-          visibility: "public",
-          tags: "joy,mindfulness,gratitude",
-          likes: 56,
-          comments: 8
-        },
-        {
-          title: "The Unexpected Journey",
-          content: "Five years ago, I never would have imagined where I am today. Life has a funny way of taking us on unexpected detours that turn out to be exactly where we needed to go...",
-          coverImage: "https://images.unsplash.com/photo-1471107340929-a87cd0f5b5f3?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80",
-          authorId: 5,
-          authorName: "David Wilson",
-          visibility: "public",
-          tags: "journey,reflection,growth",
-          likes: 92,
-          comments: 17
-        },
-        {
-          title: "Learning to Let Go",
-          content: "I've been holding onto something for too long - a relationship that ended, expectations I had for myself, a version of my life that didn't materialize. Today, I'm practicing letting go...",
-          coverImage: "https://images.unsplash.com/photo-1483546416237-76fd26bbcdd1?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80",
-          authorId: 6,
-          authorName: "Emily Johnson",
-          visibility: "public",
-          tags: "letting go,personal growth,healing",
-          likes: 104,
-          comments: 31
         }
       ];
       
-      await db.insert(diaryEntries).values(initialEntries);
+      const [entry] = await db.insert(diaryEntries).values(initialEntries).returning();
+      
+      // Add sample comments if entry was created
+      if (entry) {
+        const initialComments = [
+          {
+            entryId: entry.id,
+            authorName: "Sarah Kim",
+            content: "Thank you for sharing your thoughts. I find myself in a similar situation and it's comforting to know others experience the same feelings."
+          },
+          {
+            entryId: entry.id,
+            authorName: "Michael Chen",
+            content: "This resonated with me deeply. Looking back at how far we've come is so important for motivation!"
+          }
+        ];
+        
+        await db.insert(entryComments).values(initialComments);
+      }
     }
   }
 }

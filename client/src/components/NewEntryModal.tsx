@@ -6,6 +6,7 @@ import { useMutation } from '@tanstack/react-query';
 import { insertDiaryEntrySchema } from '@shared/schema';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 import {
   Dialog,
@@ -55,7 +56,7 @@ export default function NewEntryModal({ isOpen, onClose, onSuccess }: NewEntryMo
       content: '',
       coverImage: '',
       authorName: 'Anonymous',
-      visibility: 'public',
+      visibility: 'public' as const,
       tags: '',
       likes: 0,
       comments: 0,
@@ -149,7 +150,7 @@ export default function NewEntryModal({ isOpen, onClose, onSuccess }: NewEntryMo
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-3xl">
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">Create New Entry</DialogTitle>
         </DialogHeader>
@@ -181,8 +182,11 @@ export default function NewEntryModal({ isOpen, onClose, onSuccess }: NewEntryMo
                     <div className="space-y-2">
                       <Input 
                         placeholder="Enter image URL" 
-                        {...field} 
+                        value={field.value || ""}
                         onChange={handleCoverImageChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
                       />
                       
                       {previewImageUrl && (
@@ -279,7 +283,7 @@ export default function NewEntryModal({ isOpen, onClose, onSuccess }: NewEntryMo
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Visibility</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value || "public"}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select visibility" />
@@ -303,7 +307,14 @@ export default function NewEntryModal({ isOpen, onClose, onSuccess }: NewEntryMo
                   <FormItem>
                     <FormLabel>Tags</FormLabel>
                     <FormControl>
-                      <Input placeholder="Add tags separated by commas" {...field} />
+                      <Input 
+                        placeholder="Add tags separated by commas" 
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -318,14 +329,21 @@ export default function NewEntryModal({ isOpen, onClose, onSuccess }: NewEntryMo
                 <FormItem>
                   <FormLabel>Your Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter your name" {...field} />
+                    <Input 
+                      placeholder="Enter your name" 
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      ref={field.ref}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             
-            <DialogFooter>
+            <DialogFooter className="sticky bottom-0 pb-2 pt-4 bg-background">
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel
               </Button>

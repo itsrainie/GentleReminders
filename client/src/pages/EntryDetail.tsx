@@ -4,19 +4,21 @@ import { DiaryEntry } from '@shared/schema';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import DeleteEntryDialog from '@/components/DeleteEntryDialog';
+import CommentSection from '@/components/CommentSection';
 import { formatDate } from '@/lib/format-date';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { HeartIcon, MessageCircle, ArrowLeft, Calendar, Trash } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'wouter';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 export default function EntryDetail() {
   const [match, params] = useRoute('/entries/:id');
   const { toast } = useToast();
   const id = params?.id ? parseInt(params.id) : undefined;
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const commentsRef = useRef<HTMLDivElement>(null);
 
   const { data: entry, isLoading, error } = useQuery<DiaryEntry>({
     queryKey: ['/api/entries', id],
@@ -135,10 +137,9 @@ export default function EntryDetail() {
                 variant="ghost" 
                 size="sm" 
                 className="flex items-center"
-                onClick={() => toast({
-                  title: "Comments",
-                  description: "Comments will be available soon!"
-                })}
+                onClick={() => {
+                  commentsRef.current?.scrollIntoView({ behavior: 'smooth' });
+                }}
               >
                 <MessageCircle className="h-4 w-4 mr-1" />
                 <span>{entry.comments}</span>
@@ -175,6 +176,11 @@ export default function EntryDetail() {
               </div>
             </div>
           )}
+
+          {/* Comments Section */}
+          <div ref={commentsRef}>
+            {id && <CommentSection entryId={id} />}
+          </div>
 
           {/* Admin Actions */}
           <div className="mt-12 pt-6 border-t border-border">

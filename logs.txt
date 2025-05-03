@@ -1,3 +1,0 @@
-check_ver_update = True;
-
-ver. = v0.0.1

@@ -2,7 +2,7 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
-import { insertDiaryEntrySchema } from "@shared/schema";
+import { insertDiaryEntrySchema, insertCommentSchema } from "@shared/schema";
 
 // Define the admin password for deleting entries
 const ADMIN_PASSWORD = "74123741456963741789654";
@@ -101,6 +101,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(200).json({ message: "Entry deleted successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete diary entry" });
+    }
+  });
+
+  // Get comments for a specific entry
+  app.get("/api/entries/:id/comments", async (req: Request, res: Response) => {
+    try {
+      const entryId = parseInt(req.params.id);
+      if (isNaN(entryId)) {
+        return res.status(400).json({ message: "Invalid entry ID" });
+      }
+
+      // Check if entry exists
+      const entry = await storage.getDiaryEntryById(entryId);
+      if (!entry) {
+        return res.status(404).json({ message: "Entry not found" });
+      }
+
+      const comments = await storage.getCommentsByEntryId(entryId);
+      res.json(comments);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch comments" });
+    }
+  });
+
+  // Add a comment to an entry
+  app.post("/api/entries/:id/comments", async (req: Request, res: Response) => {
+    try {
+      const entryId = parseInt(req.params.id);
+      if (isNaN(entryId)) {
+        return res.status(400).json({ message: "Invalid entry ID" });
+      }
+
+      // Check if entry exists
+      const entry = await storage.getDiaryEntryById(entryId);
+      if (!entry) {
+        return res.status(404).json({ message: "Entry not found" });
+      }
+
+      // Validate the comment data
+      const commentData = {
+        ...req.body,
+        entryId // Ensure the entryId is correctly set
+      };
+
+      const validatedComment = insertCommentSchema.safeParse(commentData);
+      if (!validatedComment.success) {
+        return res.status(400).json({
+          message: "Invalid comment data",
+          errors: validatedComment.error.format()
+        });
+      }
+
+      const newComment = await storage.createComment(validatedComment.data);
+      res.status(201).json(newComment);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to add comment" });
+    }
+  });
+
+  // Delete a comment (with password protection)
+  app.delete("/api/comments/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid comment ID" });
+      }
+
+      // Validate the provided password
+      const { password } = req.body;
+      if (!password || password !== ADMIN_PASSWORD) {
+        return res.status(403).json({ message: "Invalid password" });
+      }
+
+      const success = await storage.deleteComment(id);
+      if (!success) {
+        return res.status(404).json({ message: "Comment not found or could not be deleted" });
+      }
+
+      res.status(200).json({ message: "Comment deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete comment" });
     }
   });
 
