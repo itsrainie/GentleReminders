@@ -121,7 +121,7 @@ export default function NewEntryModal({ isOpen, onClose, onSuccess }: NewEntryMo
         formattedText = `*${selectedText}*`;
         break;
       case 'underline':
-        formattedText = `__${selectedText}__`;
+        formattedText = `_${selectedText}_`;
         break;
       case 'bullet':
         formattedText = selectedText.split('\n').map(line => `• ${line}`).join('\n');
@@ -270,6 +270,14 @@ export default function NewEntryModal({ isOpen, onClose, onSuccess }: NewEntryMo
                       {...field}
                     />
                   </FormControl>
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    <p className="mb-1">You can also use the following text formatting:</p>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1">
+                      <span><strong>Bold:</strong> **text**</span>
+                      <span><em>Italic:</em> *text*</span>
+                      <span><u>Underline:</u> _text_</span>
+                    </div>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}

@@ -63,6 +63,19 @@
   font-size: 1.1rem;
 }
 
+.reminder-content strong {
+  @apply font-bold text-indigo-900 dark:text-indigo-200;
+}
+
+.reminder-content em {
+  @apply italic text-indigo-800 dark:text-indigo-200;
+}
+
+.reminder-content u {
+  @apply underline decoration-indigo-500 dark:decoration-indigo-400;
+  text-decoration-thickness: 0.1em;
+}
+
 .reminder-content-formatted {
   white-space: pre-wrap;
   font-family: 'Courier New', Courier, monospace;

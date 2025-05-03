@@ -86,10 +86,41 @@ export default function EntryDetail() {
     );
   }
 
+  // Function to escape HTML to prevent injection
+  const escapeHtml = (text: string) => {
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  };
+
+  // Function to format text with markdown-like syntax
+  const formatText = (text: string) => {
+    // First escape HTML to prevent injection
+    let safeText = escapeHtml(text);
+    
+    // Process bold text: **text** becomes <strong>text</strong>
+    let formattedText = safeText.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    
+    // Process italic text: *text* becomes <em>text</em>
+    formattedText = formattedText.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    
+    // Process underlined text: _text_ becomes <u>text</u>
+    formattedText = formattedText.replace(/_(.+?)_/g, '<u>$1</u>');
+    
+    return formattedText;
+  };
+
   // Function to convert newlines to line breaks for displaying content
   const formatContent = (content: string) => {
     return content.split('\n').map((line, i) => (
-      <p key={i} className="mb-4 reminder-content">{line}</p>
+      <p 
+        key={i} 
+        className="mb-4 reminder-content"
+        dangerouslySetInnerHTML={{ __html: formatText(line) }}
+      />
     ));
   };
 
@@ -159,20 +190,33 @@ export default function EntryDetail() {
             </div>
           )}
           
-          {/* Format toggle */}
-          <div className="flex items-center justify-end mb-4 gap-2">
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-indigo-500" />
-              <Switch
-                checked={isFormattedView}
-                onCheckedChange={setIsFormattedView}
-                id="format-toggle"
-              />
-              <Code className="h-4 w-4 text-indigo-500" />
+          {/* Format toggle and formatting info */}
+          <div className="flex items-center justify-between mb-4 gap-2">
+            <div className="flex items-center text-xs text-muted-foreground">
+              <span className="flex items-center mr-4">
+                <strong className="mr-1">Bold:</strong> **text**
+              </span>
+              <span className="flex items-center mr-4">
+                <em className="mr-1">Italic:</em> *text*
+              </span>
+              <span className="flex items-center">
+                <u className="mr-1">Underline:</u> _text_
+              </span>
             </div>
-            <span className="text-sm text-muted-foreground">
-              {isFormattedView ? "Code View" : "Normal View"}
-            </span>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-indigo-500" />
+                <Switch
+                  checked={isFormattedView}
+                  onCheckedChange={setIsFormattedView}
+                  id="format-toggle"
+                />
+                <Code className="h-4 w-4 text-indigo-500" />
+              </div>
+              <span className="text-sm text-muted-foreground">
+                {isFormattedView ? "Code View" : "Normal View"}
+              </span>
+            </div>
           </div>
           
           {isFormattedView ? (
