@@ -70,13 +70,33 @@ export class MongoDBStorage implements IStorage {
         // If valid ObjectId, use findById
         entry = await DiaryEntry.findById(entryId);
       } else {
-        // If not valid ObjectId format, get all entries and find the one with a matching partial ID
-        const allEntries = await DiaryEntry.find({}).limit(20);
-        // Find an entry where the ID string contains the provided partial ID
+        // If not valid ObjectId format, get all entries and find one that STARTS WITH the partial ID
+        // This fixes the issue where clicking on one entry redirects to another
+        const allEntries = await DiaryEntry.find({}).limit(100);
+        
+        console.log(`Looking for entry with ID starting with: ${entryId}`);
+        console.log(`Available entries: ${allEntries.map(e => e._id.toString()).join(', ')}`);
+        
+        // Find an entry where the ID string STARTS WITH the provided partial ID
+        // This is more precise than using 'includes'
         const matchingEntry = allEntries.find(e => 
-          e._id.toString().includes(entryId)
+          e._id.toString().startsWith(entryId)
         );
-        if (matchingEntry) entry = matchingEntry;
+        
+        // Only if no starting match is found, fall back to includes
+        if (!matchingEntry) {
+          console.log(`No exact start match, trying contains match for: ${entryId}`);
+          const fuzzyMatch = allEntries.find(e => 
+            e._id.toString().includes(entryId)
+          );
+          if (fuzzyMatch) {
+            console.log(`Found fuzzy match: ${fuzzyMatch._id.toString()}`);
+            entry = fuzzyMatch;
+          }
+        } else {
+          console.log(`Found exact start match: ${matchingEntry._id.toString()}`);
+          entry = matchingEntry;
+        }
       }
       
       return entry ? this.formatMongoDocument(entry) : undefined;
@@ -246,9 +266,17 @@ export class MongoDBStorage implements IStorage {
         // If valid, find directly
         comment = await EntryComment.findById(idStr);
       } else {
-        // If not valid, try to match partial ID
+        // If not valid, first try to find comments that START WITH the partial ID
         const allComments = await EntryComment.find({}).limit(100);
-        comment = allComments.find(c => c._id.toString().includes(idStr));
+        
+        // First try exact start match
+        comment = allComments.find(c => c._id.toString().startsWith(idStr));
+        
+        // Only if no starting match is found, fall back to includes
+        if (!comment) {
+          console.log(`No exact start match for comment, trying contains match for: ${idStr}`);
+          comment = allComments.find(c => c._id.toString().includes(idStr));
+        }
       }
       
       if (!comment) return false;
