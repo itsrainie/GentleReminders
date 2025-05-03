@@ -1,5 +1,5 @@
 import { useRoute } from 'wouter';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DiaryEntry } from '@shared/schema';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -14,6 +14,7 @@ import { Link } from 'wouter';
 import { useState, useRef } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { apiRequest } from '@/lib/queryClient';
+import { useLikeEntry } from '@/hooks/use-diary';
 
 export default function EntryDetail() {
   const [match, params] = useRoute('/entries/:id');
@@ -160,15 +161,30 @@ export default function EntryDetail() {
             
             <div className="flex items-center space-x-4">
               <Button 
-                variant="ghost" 
+                variant={isLiked ? "secondary" : "ghost"}
                 size="sm" 
                 className="flex items-center"
-                onClick={() => toast({
-                  title: "Liked Reminder",
-                  description: "This feature will be available soon!"
-                })}
+                disabled={likeMutation.isPending || isLiked}
+                onClick={() => {
+                  likeMutation.mutate(id, {
+                    onSuccess: () => {
+                      toast({
+                        title: "Thanks for liking!",
+                        description: "Your appreciation has been recorded.",
+                      });
+                      setIsLiked(true);
+                    },
+                    onError: (error) => {
+                      toast({
+                        title: "Error liking reminder",
+                        description: error instanceof Error ? error.message : "An error occurred",
+                        variant: "destructive"
+                      });
+                    }
+                  });
+                }}
               >
-                <HeartIcon className="h-4 w-4 mr-1" />
+                <HeartIcon className={`h-4 w-4 mr-1 ${isLiked ? "fill-current text-red-500" : ""}`} />
                 <span>{entry.likes}</span>
               </Button>
               
