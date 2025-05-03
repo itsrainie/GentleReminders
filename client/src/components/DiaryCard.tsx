@@ -63,7 +63,7 @@ export default function DiaryCard({ entry }: DiaryCardProps) {
           </span>
         </div>
         <h3 className="font-semibold text-lg mb-2">{entry.title}</h3>
-        <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
+        <p className="text-foreground text-sm mb-4 line-clamp-3">
           {truncateText(entry.content, 150)}
         </p>
         <div className="flex justify-between items-center">
