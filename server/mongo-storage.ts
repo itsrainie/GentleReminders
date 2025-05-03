@@ -60,7 +60,25 @@ export class MongoDBStorage implements IStorage {
     try {
       // Convert to string for MongoDB ObjectId
       const entryId = String(id);
-      const entry = await DiaryEntry.findById(entryId);
+      
+      // Check if the ID is a valid MongoDB ObjectId
+      const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(entryId);
+      
+      let entry;
+      
+      if (isValidObjectId) {
+        // If valid ObjectId, use findById
+        entry = await DiaryEntry.findById(entryId);
+      } else {
+        // If not valid ObjectId format, get all entries and find the one with a matching partial ID
+        const allEntries = await DiaryEntry.find({}).limit(20);
+        // Find an entry where the ID string contains the provided partial ID
+        const matchingEntry = allEntries.find(e => 
+          e._id.toString().includes(entryId)
+        );
+        if (matchingEntry) entry = matchingEntry;
+      }
+      
       return entry ? this.formatMongoDocument(entry) : undefined;
     } catch (error) {
       console.error("Error getting diary entry by ID:", error);
@@ -94,12 +112,23 @@ export class MongoDBStorage implements IStorage {
 
   async deleteDiaryEntry(id: string | number): Promise<boolean> {
     try {
-      // Convert to string for MongoDB ObjectId
-      const entryId = String(id);
-      const result = await DiaryEntry.findByIdAndDelete(entryId);
+      // Find the entry to delete (handling partial IDs)
+      const entryIdStr = String(id);
+      
+      // Find the entry first to get its real ID
+      const entry = await this.getDiaryEntryById(entryIdStr);
+      if (!entry) {
+        console.error(`Entry with ID ${entryIdStr} not found for deletion`);
+        return false;
+      }
+      
+      // Delete with the full ID
+      const fullEntryId = entry.id;
+      const result = await DiaryEntry.findByIdAndDelete(fullEntryId);
+      
       if (result) {
         // Delete all comments associated with this entry
-        await EntryComment.deleteMany({ entryId: entryId });
+        await EntryComment.deleteMany({ entryId: fullEntryId });
         return true;
       }
       return false;
@@ -136,10 +165,27 @@ export class MongoDBStorage implements IStorage {
     try {
       // Convert to string for MongoDB
       const entryIdStr = String(entryId);
-      const comments = await EntryComment.find({ entryId: entryIdStr })
-        .sort({ createdAt: -1 });
       
-      return comments.map(comment => this.formatMongoDocument(comment));
+      // Check if the ID is a valid MongoDB ObjectId
+      const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(entryIdStr);
+      
+      if (isValidObjectId) {
+        // If it's a valid ObjectID, find comments directly
+        const comments = await EntryComment.find({ entryId: entryIdStr })
+          .sort({ createdAt: -1 });
+        return comments.map(comment => this.formatMongoDocument(comment));
+      } else {
+        // If it's not a valid ObjectID, try to find the actual entry first
+        const entry = await this.getDiaryEntryById(entryIdStr);
+        if (entry) {
+          // If found, use its ID to get comments
+          const comments = await EntryComment.find({ entryId: entry.id })
+            .sort({ createdAt: -1 });
+          return comments.map(comment => this.formatMongoDocument(comment));
+        }
+      }
+      
+      return [];
     } catch (error) {
       console.error("Error getting comments by entry ID:", error);
       return [];
@@ -148,26 +194,37 @@ export class MongoDBStorage implements IStorage {
 
   async createComment(comment: InsertEntryComment): Promise<any> {
     try {
-      // Ensure entryId is handled properly as string
-      // Check if entry exists with the given ID first
+      // Handle partial or invalid ObjectIds
       const entryIdStr = String(comment.entryId);
-      const entry = await DiaryEntry.findById(entryIdStr);
+      
+      // First, check if the entry ID is a valid MongoDB ObjectId
+      const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(entryIdStr);
+      
+      let entry;
+      
+      if (isValidObjectId) {
+        // If valid, find directly by ID
+        entry = await DiaryEntry.findById(entryIdStr);
+      } else {
+        // If not valid, try to find the entry with partial ID
+        entry = await this.getDiaryEntryById(entryIdStr);
+      }
       
       if (!entry) {
         throw new Error(`Entry with ID ${entryIdStr} not found`);
       }
       
-      // Create comment with validated entryId
+      // Create comment with the full, valid entry ID
       const commentData = {
         ...comment,
-        entryId: entryIdStr
+        entryId: entry.id
       };
       
       const newComment = new EntryComment(commentData);
       await newComment.save();
       
       // Update comment count
-      await this.updateCommentCount(entryIdStr);
+      await this.updateCommentCount(entry.id);
       
       return this.formatMongoDocument(newComment);
     } catch (error) {
@@ -178,17 +235,31 @@ export class MongoDBStorage implements IStorage {
 
   async deleteComment(id: string | number): Promise<boolean> {
     try {
-      // Get the comment to find its entryId before deletion
-      const comment = await EntryComment.findById(id);
+      const idStr = String(id);
+      
+      // Check if valid MongoDB ObjectId
+      const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(idStr);
+      
+      let comment;
+      
+      if (isValidObjectId) {
+        // If valid, find directly
+        comment = await EntryComment.findById(idStr);
+      } else {
+        // If not valid, try to match partial ID
+        const allComments = await EntryComment.find({}).limit(100);
+        comment = allComments.find(c => c._id.toString().includes(idStr));
+      }
+      
       if (!comment) return false;
 
       const entryId = comment.entryId;
       
-      // Delete the comment
-      const result = await EntryComment.findByIdAndDelete(id);
+      // Delete the comment using its full ID
+      const result = await EntryComment.findByIdAndDelete(comment._id);
       
       if (result) {
-        // Update comment count - entryId is already a string
+        // Update comment count
         await this.updateCommentCount(entryId);
         return true;
       }
@@ -201,14 +272,33 @@ export class MongoDBStorage implements IStorage {
 
   async updateCommentCount(entryId: string | number): Promise<void> {
     try {
-      // For MongoDB, we need to make sure entryId is a string (MongoDB ObjectId)
       const entryIdStr = String(entryId);
       
-      // Count comments for the entry
-      const count = await EntryComment.countDocuments({ entryId: entryIdStr });
+      // Find the actual entry first (in case entryId is partial)
+      let entry;
+      
+      // Check if valid MongoDB ObjectId
+      const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(entryIdStr);
+      
+      if (isValidObjectId) {
+        // If valid, find directly
+        entry = await DiaryEntry.findById(entryIdStr);
+      } else {
+        // Try to find entry by partial ID
+        entry = await this.getDiaryEntryById(entryIdStr);
+      }
+      
+      if (!entry) {
+        console.error(`Cannot update comment count: entry with ID ${entryIdStr} not found`);
+        return;
+      }
+      
+      // Count comments for the entry using the full entry ID
+      const fullEntryId = entry.id || entry._id.toString();
+      const count = await EntryComment.countDocuments({ entryId: fullEntryId });
       
       // Update the entry with the new comment count
-      await DiaryEntry.findByIdAndUpdate(entryIdStr, { comments: count });
+      await DiaryEntry.findByIdAndUpdate(fullEntryId, { comments: count });
     } catch (error) {
       console.error("Error updating comment count:", error);
     }
