@@ -71,8 +71,8 @@ export default function NewEntryModal({ isOpen, onClose, onSuccess }: NewEntryMo
     },
     onSuccess: () => {
       toast({
-        title: "Entry created!",
-        description: "Your diary entry has been published.",
+        title: "Reminder created!",
+        description: "Your reminder has been published.",
       });
       form.reset();
       setPreviewImageUrl(null);
@@ -81,7 +81,7 @@ export default function NewEntryModal({ isOpen, onClose, onSuccess }: NewEntryMo
     },
     onError: (error) => {
       toast({
-        title: "Error creating entry",
+        title: "Error creating reminder",
         description: error.message || "Please try again.",
         variant: "destructive",
       });
@@ -105,7 +105,7 @@ export default function NewEntryModal({ isOpen, onClose, onSuccess }: NewEntryMo
   
   // Text formatting helpers
   const formatText = (formatType: string) => {
-    const textarea = document.getElementById('entry-content') as HTMLTextAreaElement;
+    const textarea = document.getElementById('reminder-content') as HTMLTextAreaElement;
     if (!textarea) return;
     
     const start = textarea.selectionStart;
@@ -164,7 +164,7 @@ export default function NewEntryModal({ isOpen, onClose, onSuccess }: NewEntryMo
                 <FormItem>
                   <FormLabel>Title</FormLabel>
                   <FormControl>
-                    <Input placeholder="Give your entry a title" {...field} />
+                    <Input placeholder="Give your reminder a title" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -237,7 +237,7 @@ export default function NewEntryModal({ isOpen, onClose, onSuccess }: NewEntryMo
               name="content"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Entry Content</FormLabel>
+                  <FormLabel>Reminder Content</FormLabel>
                   {/* Editor Toolbar */}
                   <div className="flex items-center p-2 bg-muted rounded-t-md border border-border">
                     <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => formatText('bold')}>
@@ -264,8 +264,8 @@ export default function NewEntryModal({ isOpen, onClose, onSuccess }: NewEntryMo
                   
                   <FormControl>
                     <Textarea
-                      id="entry-content"
-                      placeholder="Start writing your entry here..."
+                      id="reminder-content"
+                      placeholder="Start writing your reminder here..."
                       className="resize-none min-h-[200px] rounded-t-none"
                       {...field}
                     />
@@ -348,7 +348,7 @@ export default function NewEntryModal({ isOpen, onClose, onSuccess }: NewEntryMo
                 Cancel
               </Button>
               <Button type="submit" disabled={createEntry.isPending}>
-                {createEntry.isPending ? "Publishing..." : "Publish Entry"}
+                {createEntry.isPending ? "Publishing..." : "Publish Reminder"}
               </Button>
             </DialogFooter>
           </form>
