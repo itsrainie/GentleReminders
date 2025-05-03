@@ -41,7 +41,11 @@ const diaryEntrySchema = new mongoose.Schema({
   title: { type: String, required: true },
   content: { type: String, required: true },
   coverImage: { type: String, default: "" },
-  authorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  authorId: { 
+    type: String, 
+    default: null,
+    // Remove the direct reference to mongoose.Schema.Types.ObjectId
+  },
   authorName: { type: String, default: "Anonymous" },
   visibility: { type: String, enum: ['public', 'followers', 'private'], default: 'public' },
   tags: { type: String, default: "" },
@@ -94,7 +98,11 @@ export type DiaryEntryDocument = mongoose.Document & {
 
 // Comments Schema
 const entryCommentSchema = new mongoose.Schema({
-  entryId: { type: mongoose.Schema.Types.ObjectId, ref: 'DiaryEntry', required: true },
+  entryId: { 
+    type: String, 
+    required: true,
+    // Changed from ObjectId to String to accept various ID formats 
+  },
   authorName: { type: String, default: "Anonymous" },
   content: { type: String, required: true },
 }, { 

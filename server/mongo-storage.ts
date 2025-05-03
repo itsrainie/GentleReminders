@@ -70,10 +70,17 @@ export class MongoDBStorage implements IStorage {
 
   async createDiaryEntry(entry: InsertDiaryEntry): Promise<any> {
     try {
-      // Handle authorId conversion if it exists
+      // Remove authorId from the entry data since it causes issues with ObjectId validation
+      const { authorId, ...entryWithoutAuthorId } = entry;
+      
+      // Create a new object with all entry data except authorId
       const entryData = {
-        ...entry,
-        authorId: entry.authorId ? String(entry.authorId) : undefined
+        ...entryWithoutAuthorId,
+        // Only add authorId if it's a valid MongoDB ObjectId format (24 char hex)
+        // Otherwise exclude it entirely
+        ...(authorId && /^[0-9a-fA-F]{24}$/.test(String(authorId)) 
+          ? { authorId: String(authorId) } 
+          : {})
       };
       
       const newEntry = new DiaryEntry(entryData);
@@ -141,17 +148,26 @@ export class MongoDBStorage implements IStorage {
 
   async createComment(comment: InsertEntryComment): Promise<any> {
     try {
-      // Ensure entryId is handled correctly for MongoDB
+      // Ensure entryId is handled properly as string
+      // Check if entry exists with the given ID first
+      const entryIdStr = String(comment.entryId);
+      const entry = await DiaryEntry.findById(entryIdStr);
+      
+      if (!entry) {
+        throw new Error(`Entry with ID ${entryIdStr} not found`);
+      }
+      
+      // Create comment with validated entryId
       const commentData = {
         ...comment,
-        entryId: String(comment.entryId)
+        entryId: entryIdStr
       };
       
       const newComment = new EntryComment(commentData);
       await newComment.save();
       
       // Update comment count
-      await this.updateCommentCount(String(comment.entryId));
+      await this.updateCommentCount(entryIdStr);
       
       return this.formatMongoDocument(newComment);
     } catch (error) {
