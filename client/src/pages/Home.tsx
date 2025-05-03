@@ -48,9 +48,9 @@ export default function Home() {
       <main className="container mx-auto pb-24">
         {/* Welcome Banner */}
         <section className="bg-surface p-6 rounded-lg shadow-sm border border-border my-6 mx-4 md:mx-6">
-          <h1 className="text-2xl font-bold mb-2">Welcome to DiaryShare</h1>
+          <h1 className="text-2xl font-bold mb-2">Welcome to GentleReminders</h1>
           <p className="text-muted-foreground mb-4">
-            Share your thoughts, experiences, and moments with the world.
+            Share your reminders, experiences, and moments with the world.
           </p>
           <Button 
             onClick={() => setIsModalOpen(true)}
@@ -63,7 +63,7 @@ export default function Home() {
         {/* Recent Entries Heading */}
         <div className="px-4 md:px-6 mt-8 mb-4">
           <h2 className="text-xl font-semibold">
-            {searchTerm ? `Search Results for "${searchTerm}"` : "Recent Entries"}
+            {searchTerm ? `Search Results for "${searchTerm}"` : "Recent Reminders"}
           </h2>
         </div>
         
@@ -86,18 +86,18 @@ export default function Home() {
             <div className="inline-block p-4 rounded-full bg-muted mb-4">
               <BookOpen className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-medium">No entries found</h3>
+            <h3 className="text-lg font-medium">No reminders found</h3>
             <p className="text-muted-foreground mt-2">
               {searchTerm 
                 ? "Try a different search term or clear your search." 
-                : "Be the first to share your thoughts with the world!"}
+                : "Be the first to share your reminders with the world!"}
             </p>
             {!searchTerm && (
               <Button 
                 onClick={() => setIsModalOpen(true)} 
                 className="mt-4 bg-primary text-white hover:bg-primary/90"
               >
-                Create First Entry
+                Create First Reminder
               </Button>
             )}
           </div>
@@ -111,7 +111,7 @@ export default function Home() {
               onClick={loadMoreEntries}
               className="px-6 py-2"
             >
-              Load More Entries
+              Load More Reminders
             </Button>
           </div>
         )}

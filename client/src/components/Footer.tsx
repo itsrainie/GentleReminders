@@ -9,10 +9,10 @@ export default function Footer() {
           <div className="mb-4 md:mb-0">
             <div className="flex items-center justify-center md:justify-start">
               <BookOpen className="text-primary text-xl mr-2" />
-              <span className="text-lg font-semibold">DiaryShare</span>
+              <span className="text-lg font-semibold">GentleReminders</span>
             </div>
             <p className="text-muted-foreground text-sm mt-1 text-center md:text-left">
-              Share your thoughts with the world
+              Share your reminders with the world
             </p>
           </div>
           
@@ -33,7 +33,7 @@ export default function Footer() {
         </div>
         
         <div className="mt-6 text-center text-muted-foreground text-sm">
-          <p>© {new Date().getFullYear()} DiaryShare. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} GentleReminders. All rights reserved.</p>
         </div>
       </div>
     </footer>
