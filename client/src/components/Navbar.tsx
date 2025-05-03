@@ -37,7 +37,7 @@ export default function Navbar({ onSearch, onNewEntry }: NavbarProps) {
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
               <BookOpen className="text-primary text-2xl mr-2" />
-              <span className="text-xl font-semibold">DiaryShare</span>
+              <span className="text-xl font-semibold">GentleReminders</span>
             </Link>
           </div>
           
