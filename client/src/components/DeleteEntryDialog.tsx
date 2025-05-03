@@ -29,7 +29,7 @@ import { Trash } from 'lucide-react';
 interface DeleteEntryDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  entryId: number;
+  entryId: string | number;
 }
 
 const deleteFormSchema = z.object({

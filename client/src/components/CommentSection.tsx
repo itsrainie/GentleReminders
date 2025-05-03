@@ -34,7 +34,7 @@ type CommentFormValues = z.infer<typeof commentSchema>;
 
 export default function CommentSection({ entryId }: CommentSectionProps) {
   const { toast } = useToast();
-  const [deleteCommentId, setDeleteCommentId] = useState<number | null>(null);
+  const [deleteCommentId, setDeleteCommentId] = useState<string | number | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
 
@@ -81,7 +81,7 @@ export default function CommentSection({ entryId }: CommentSectionProps) {
   };
 
   // Handle delete comment
-  const handleDeleteComment = (id: number) => {
+  const handleDeleteComment = (id: string | number) => {
     setDeleteCommentId(id);
     setDeleteDialogOpen(true);
   };

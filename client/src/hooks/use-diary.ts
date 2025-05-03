@@ -15,7 +15,7 @@ export function useDiaryEntries(limit?: number, offset?: number) {
   });
 }
 
-export function useDiaryEntry(id: number | undefined) {
+export function useDiaryEntry(id: string | number | undefined) {
   return useQuery<DiaryEntry>({
     queryKey: ['/api/entries', id],
     queryFn: async () => {
@@ -49,7 +49,7 @@ export function useCreateDiaryEntry() {
 }
 
 // Comment-related hooks
-export function useEntryComments(entryId: number | undefined) {
+export function useEntryComments(entryId: string | number | undefined) {
   return useQuery<EntryComment[]>({
     queryKey: ['/api/entries', entryId, 'comments'],
     queryFn: async () => {
@@ -66,8 +66,11 @@ export function useCreateComment() {
       entryId, 
       comment 
     }: { 
-      entryId: number, 
-      comment: Omit<EntryComment, 'id' | 'entryId' | 'createdAt'> 
+      entryId: string | number, 
+      comment: { 
+        content: string; 
+        authorName: string; 
+      } 
     }) => {
       const res = await apiRequest('POST', `/api/entries/${entryId}/comments`, comment);
       return res.json();
@@ -87,15 +90,29 @@ export function useDeleteComment() {
       password,
       entryId
     }: { 
-      commentId: number, 
+      commentId: string | number, 
       password: string,
-      entryId: number
+      entryId: string | number
     }) => {
       const res = await apiRequest('DELETE', `/api/comments/${commentId}`, { password });
       return res.json();
     },
     onSuccess: (_, { entryId }) => {
       queryClient.invalidateQueries({ queryKey: ['/api/entries', entryId, 'comments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/entries', entryId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/entries'] });
+    }
+  });
+}
+
+// Like entry hook
+export function useLikeEntry() {
+  return useMutation({
+    mutationFn: async (entryId: string | number) => {
+      const res = await apiRequest('POST', `/api/entries/${entryId}/like`);
+      return res.json();
+    },
+    onSuccess: (_, entryId) => {
       queryClient.invalidateQueries({ queryKey: ['/api/entries', entryId] });
       queryClient.invalidateQueries({ queryKey: ['/api/entries'] });
     }

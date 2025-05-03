@@ -25,30 +25,8 @@ export default function EntryDetail() {
   const [isLiked, setIsLiked] = useState(false);
   const commentsRef = useRef<HTMLDivElement>(null);
 
-  // Like mutation
-  const likeMutation = useMutation({
-    mutationFn: async () => {
-      if (!id) throw new Error('Invalid reminder ID');
-      const response = await apiRequest('POST', `/api/entries/${id}/like`);
-      return response.json();
-    },
-    onSuccess: (updatedEntry) => {
-      toast({
-        title: "Thanks for liking!",
-        description: "Your appreciation has been recorded.",
-      });
-      setIsLiked(true);
-      queryClient.invalidateQueries({ queryKey: ['/api/entries', id] });
-      queryClient.invalidateQueries({ queryKey: ['/api/entries'] });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error liking reminder",
-        description: error instanceof Error ? error.message : "An error occurred",
-        variant: "destructive"
-      });
-    }
-  });
+  // Use the like hook
+  const likeMutation = useLikeEntry();
 
   const { data: entry, isLoading, error } = useQuery<DiaryEntry>({
     queryKey: ['/api/entries', id],
