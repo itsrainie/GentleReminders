@@ -54,7 +54,7 @@ export default function DeleteEntryDialog({ isOpen, onClose, entryId }: DeleteEn
       const res = await apiRequest('DELETE', `/api/entries/${entryId}`, data);
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || 'Failed to delete entry');
+        throw new Error(errorData.message || 'Failed to delete reminder');
       }
       return res.json();
     },

@@ -23,9 +23,9 @@ export default function EntryDetail() {
   const { data: entry, isLoading, error } = useQuery<DiaryEntry>({
     queryKey: ['/api/entries', id],
     queryFn: async () => {
-      if (!id) throw new Error('Invalid entry ID');
+      if (!id) throw new Error('Invalid reminder ID');
       return fetch(`/api/entries/${id}`).then(res => {
-        if (!res.ok) throw new Error('Entry not found');
+        if (!res.ok) throw new Error('Reminder not found');
         return res.json();
       });
     },
@@ -199,7 +199,7 @@ export default function EntryDetail() {
         </div>
       </main>
       
-      {/* Delete Entry Dialog */}
+      {/* Delete Reminder Dialog */}
       {id && (
         <DeleteEntryDialog
           isOpen={isDeleteDialogOpen}
