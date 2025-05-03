@@ -159,9 +159,31 @@ export default function EntryDetail() {
             </div>
           )}
           
-          <div className="prose prose-lg max-w-none">
-            {formatContent(entry.content)}
+          {/* Format toggle */}
+          <div className="flex items-center justify-end mb-4 gap-2">
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-indigo-500" />
+              <Switch
+                checked={isFormattedView}
+                onCheckedChange={setIsFormattedView}
+                id="format-toggle"
+              />
+              <Code className="h-4 w-4 text-indigo-500" />
+            </div>
+            <span className="text-sm text-muted-foreground">
+              {isFormattedView ? "Code View" : "Normal View"}
+            </span>
           </div>
+          
+          {isFormattedView ? (
+            <pre className="reminder-content-formatted">
+              {entry.content}
+            </pre>
+          ) : (
+            <div className="prose prose-lg max-w-none">
+              {formatContent(entry.content)}
+            </div>
+          )}
           
           {entry.tags && entry.tags.length > 0 && (
             <div className="mt-8 pt-6 border-t border-border">
